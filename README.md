@@ -1,1 +1,1 @@
-# fpga-vga-verilog-project
+# fpga-vga-verilog
