@@ -1,3 +1,4 @@
+
 ---
 layout: home
 title: FPGA VGA Driver Project
@@ -5,49 +6,393 @@ tags: fpga vga verilog
 categories: demo
 ---
 
-Add a short welcome message or introduction here. Aim to get the viewer interested in what follows! Guideline: 1 or 2 sentences. 
+# FPGA VGA Driver Project
 
-I am adding a test sentence here at 13:24 on 03/12/24.
+The aim of this project was to use Verilog and the Basys 3 FPGA development board to generate an image on a VGA monitor.
 
-## **Template VGA Design**
-### **Project Set-Up**
-Summarise the project set-up and design flow. Include a screenshot of your own set-up, for example see the image of my Project Summary window below. Guideline 1 short paragraph.
+I modified the original VGA template to create an animated Pac-Man character that automatically moves clockwise around a solid blue rectangle on a white background.
 
-<img src="https://raw.githubusercontent.com/melgineer/fpga-vga-verilog/main/docs/assets/images/VGAPrjSum.png">
-### **Template Code**
-Outline the structure and design of the Verilog code templates you were given. What do they do? Include reference to how a VGA interface works. Guideline: 2/3 short paragraphs, consider including screenshot(s).
-### **Simulation**
-Explain the simulation process. Reference any important details, include a well-selected screenshot of the simulation. Guideline: 1/2 short paragraphs.
-### **Synthesis**
-Describe the synthesis and implementation processes. Consider including 1/2 useful screenshot(s). Guideline: 1/2 short paragraphs.
-### **Demonstration**
-Perhaps add a picture of your demo. Guideline: 1/2 sentences.
+## Template VGA Design
 
-## **My VGA Design Edit**
-Introduce your own design idea. Consider how complex/achievabble this might be or otherwise. Reference any research you do online (use hyperlinks).
-### **Code Adaptation**
-Briefly show how you changed the template code to display a different image. Demonstrate your understanding. Guideline: 1-2 short paragraphs.
-### **Simulation**
-Show how you simulated your own design. Are there any things to note? Demonstrate your understanding. Add a screenshot. Guideline: 1-2 short paragraphs.
-### **Synthesis**
-Describe the synthesis & implementation outputs for your design, are there any differences to that of the original design? Guideline 1-2 short paragraphs.
-### **Demonstration**
-If you get your own design working on the Basys3 board, take a picture! Guideline: 1-2 sentences.
+### Project Set-Up
 
-## **More Markdown Basics**
-This is a paragraph. Add an empty line to start a new paragraph.
+The project was created using Xilinx Vivado and the Basys 3 FPGA development board.
 
-Font can be emphasised as *Italic* or **Bold**.
+The Verilog files were added to Design Sources, the testbench was added to Simulation Sources, and the Basys 3 constraints file was added to Constraints.
 
-Code can be highlighted by using `backticks`.
+The Clocking Wizard was configured to convert the 100 MHz clock from the Basys 3 into a 25 MHz clock for the VGA display.
 
-Hyperlinks look like this: [GitHub Help](https://help.github.com/).
+The VGA output was configured for a resolution of 640x480 pixels, although the monitor used had a native resolution of 1920x1080.
 
-A bullet list can be rendered as follows:
-- vectors
-- algorithms
-- iterators
+### Template Code
 
-Images can be added by uploading them to the repository in a /docs/assets/images folder, and then rendering using HTML via githubusercontent.com as shown in the example below.
+The original VGA design consisted of several modules:
 
-<img src="https://raw.githubusercontent.com/melgineer/fpga-vga-verilog/main/docs/assets/images/VGAPrjSrcs.png">
+| Module | Function |
+|---|---|
+| VGATop.v | Connects all the modules together |
+| VGASync.v | Generates VGA timing signals |
+| VGAColourCycle.v | Generates changing colours |
+| VGAColourStripes.v | Generates coloured stripes |
+| clk_wiz_0 | Converts 100 MHz to 25 MHz |
+| Basys3_Master.xdc | Assigns the FPGA pins |
+| Testbench.v | Used for simulation |
+
+The VGASync module generates the horizontal and vertical synchronisation signals and determines the current row and column of the display.
+
+Each RGB colour channel uses four bits, allowing values between 0 and 15. This provides a total of 4096 possible colours.
+
+### Simulation
+
+Behavioural simulation allows the operation of the VGA design to be checked before programming the FPGA.
+
+The expected horizontal counter range is 0 to 799, while the expected vertical counter range is 0 to 524.
+
+The vid_on signal determines whether the current pixel is inside the visible 640x480 display area.
+
+<!-- Insert template simulation screenshot -->
+
+### Synthesis
+
+Synthesis converts the Verilog code into digital logic that can be implemented on the FPGA.
+
+Implementation places and routes this logic onto the FPGA. A bitstream is then generated and uploaded to the Basys 3 using the Vivado Hardware Manager.
+
+<!-- Insert template synthesis screenshot -->
+
+### Demonstration
+
+The original VGA designs demonstrated colour cycling and colour stripes.
+
+These designs provided the starting point for creating my own animated VGA image.
+
+<!-- Insert template demonstration photograph -->
+
+## My VGA Design Edit
+
+For my own design, I created a Pac-Man character that automatically moves around a solid blue rectangle.
+
+The design includes:
+
+- White background
+- Solid bright blue rectangle
+- Yellow Pac-Man character
+- Black eye
+- Automatic clockwise movement
+- Automatic direction changes
+- Opening and closing mouth
+- Adjustable movement speed
+
+The animation operates automatically without requiring buttons to control its movement.
+
+### Code Adaptation
+
+I created a new module called PacManImage.v to generate the image and control the animation.
+
+The existing VGA synchronisation and Clocking Wizard modules were retained.
+
+#### Background Colour
+
+The background was changed to white by setting all three colour channels to their maximum four-bit value.
+
+```verilog
+red   = 4'hF;
+green = 4'hF;
+blue  = 4'hF;
+```
+
+#### Blue Rectangle
+
+The rectangle was created using the current row and column coordinates.
+
+```verilog
+if (col >= 100 && col <= 340 &&
+    row >= 220 && row <= 420) begin
+    red   = 4'h0;
+    green = 4'h0;
+    blue  = 4'hF;
+end
+```
+
+I adjusted the coordinates several times to achieve the desired position on the physical monitor.
+
+The rectangle is 241 pixels wide and 201 pixels high, including the boundary pixels.
+
+#### Pac-Man Image
+
+Pac-Man was created using the equation of a circle.
+
+```verilog
+if ((x*x + y*y <= 484) && !mouth) begin
+    red   = 4'hF;
+    green = 4'hF;
+    blue  = 4'h0;
+end
+```
+
+The radius of the circle is 22 pixels, as 22 squared equals 484.
+
+The current pixel coordinates are calculated relative to the position of Pac-Man.
+
+```verilog
+dx = $signed({1'b0,col}) -
+     $signed({1'b0,pac_x});
+
+dy = $signed({1'b0,row}) -
+     $signed({1'b0,pac_y});
+```
+
+The signed calculations allow pixels on either side of Pac-Man's centre to be drawn correctly.
+
+Yellow is generated by setting the red and green channels to their maximum values and the blue channel to zero.
+
+#### Pac-Man Eye
+
+A small black eye was added using coordinate comparisons.
+
+```verilog
+if (x >= 5 && x <= 8 &&
+    y >= -12 && y <= -9) begin
+    red   = 4'h0;
+    green = 4'h0;
+    blue  = 4'h0;
+end
+```
+
+#### Movement Speed
+
+A counter was used to control how often Pac-Man moves.
+
+```verilog
+localparam SPEED = 10_000;
+
+reg [17:0] counter = 0;
+```
+
+The counter uses the 25 MHz clock.
+
+After every 10,000 clock cycles, the position or direction of Pac-Man is updated.
+
+Reducing the SPEED value increases the movement speed, while increasing the value slows the animation down.
+
+The calculated movement update interval is 0.4 milliseconds, giving a movement speed of approximately 2500 pixels per second along each side.
+
+#### Starting Position
+
+Pac-Man starts at the top-left corner of the blue rectangle.
+
+```verilog
+reg [2:0] direction = 1;
+
+reg [10:0] pac_x = 100;
+reg [10:0] pac_y = 220;
+```
+
+The direction register determines the direction of movement.
+
+| Value | Direction |
+|---|---|
+| 1 | Right |
+| 2 | Left |
+| 3 | Up |
+| 4 | Down |
+
+When the reset signal is activated, Pac-Man returns to his starting position.
+
+#### Automatic Clockwise Movement
+
+A case statement controls the movement of Pac-Man around the rectangle.
+
+```verilog
+case (direction)
+
+    1: begin // Right
+        if (pac_x < 340)
+            pac_x <= pac_x + 1;
+        else
+            direction <= 4;
+    end
+
+    4: begin // Down
+        if (pac_y < 420)
+            pac_y <= pac_y + 1;
+        else
+            direction <= 2;
+    end
+
+    2: begin // Left
+        if (pac_x > 100)
+            pac_x <= pac_x - 1;
+        else
+            direction <= 3;
+    end
+
+    3: begin // Up
+        if (pac_y > 220)
+            pac_y <= pac_y - 1;
+        else
+            direction <= 1;
+    end
+
+    default: direction <= 1;
+
+endcase
+```
+
+Pac-Man moves between the following coordinates:
+
+| Corner | X | Y |
+|---|---:|---:|
+| Top-left | 100 | 220 |
+| Top-right | 340 | 220 |
+| Bottom-right | 340 | 420 |
+| Bottom-left | 100 | 420 |
+
+Once Pac-Man reaches a corner, the direction changes automatically.
+
+This creates a continuous clockwise movement around the rectangle. The centre of Pac-Man follows the edges of the blue rectangle.
+
+#### Image Rotation
+
+To make Pac-Man face the direction of movement, the image coordinates are rotated using another case statement.
+
+```verilog
+case (direction)
+    1: begin x = dx;  y = dy;  end
+    2: begin x = -dx; y = -dy; end
+    3: begin x = -dy; y = dx;  end
+    4: begin x = dy;  y = -dx; end
+    default: begin x = dx; y = dy; end
+endcase
+```
+
+This allows the same Pac-Man image to be used for all four directions without creating four separate images.
+
+#### Mouth Animation
+
+An additional counter controls the opening and closing of Pac-Man's mouth.
+
+```verilog
+if (mouth_count == 9) begin
+    mouth_count <= 0;
+    mouth_open <= ~mouth_open;
+end
+else
+    mouth_count <= mouth_count + 1;
+```
+
+The mouth_open register changes between two states.
+
+```verilog
+ay = (y < 0) ? -y : y;
+
+mouth = (x > 0) &&
+        (mouth_open ? (2*ay < x)
+                    : (10*ay < x));
+```
+
+Depending on the value of mouth_open, a larger or smaller section of the circle is removed.
+
+This creates the mouth animation while Pac-Man moves.
+
+#### RTL Schematic
+
+![Pac-Man RTL Schematic](pacman-rtl-schematic.png)
+
+*Figure 1: RTL schematic of the modified Pac-Man VGA design.*
+
+The RTL schematic shows how the different modules are connected together in Vivado.
+
+The Clocking Wizard receives the 100 MHz clock and generates the 25 MHz clock used by both VGASync and PacManImage.
+
+The VGASync module generates the row and column coordinates, horizontal synchronisation, vertical synchronisation and vid_on signal.
+
+The row and column coordinates are connected to the PacManImage module, which generates the red, green and blue colour values.
+
+Three multiplexers are used to control the RGB outputs using the vid_on signal. When the current pixel is outside the visible display area, the RGB outputs are set to zero.
+
+The RTL schematic contains:
+
+| Property | Value |
+|---|---:|
+| Cells | 6 |
+| I/O Ports | 16 |
+| Nets | 53 |
+
+This schematic shows the complete top-level structure of the modified VGA design.
+
+### Simulation
+
+The Pac-Man design can be tested using behavioural simulation in Vivado.
+
+The main signals to observe are:
+
+| Signal | Function |
+|---|---|
+| pac_x | Horizontal position |
+| pac_y | Vertical position |
+| direction | Direction of movement |
+| counter | Movement timing |
+| mouth_count | Mouth animation counter |
+| mouth_open | Current mouth state |
+| red | Red colour output |
+| green | Green colour output |
+| blue | Blue colour output |
+
+The expected behaviour is that Pac-Man starts at coordinates (100,220) and moves towards the right.
+
+When pac_x reaches 340, the direction changes from 1 to 4 and Pac-Man begins moving downwards.
+
+This process repeats for each side of the rectangle.
+
+<!-- Insert Pac-Man simulation screenshot -->
+
+### Synthesis
+
+The modified design introduces additional digital logic compared with the original VGA template.
+
+Additional registers are used to store Pac-Man's position, direction and mouth state.
+
+Counters are used to control the movement speed and mouth animation.
+
+Arithmetic operations, multiplication and comparison logic are used to calculate the circular shape of Pac-Man.
+
+The original VGA timing and clock generation modules remain unchanged.
+
+The RTL schematic confirms that the main design modules are connected together. The synthesis utilisation report is required to determine the actual FPGA resource usage.
+
+<!-- Insert synthesis utilisation screenshot -->
+
+### Demonstration
+
+The Pac-Man design was displayed using a VGA monitor connected to the Basys 3 FPGA development board.
+
+The monitor had a native resolution of 1920x1080, while the FPGA design used a resolution of 640x480.
+
+During development, I adjusted the rectangle coordinates to position it correctly on the physical monitor.
+
+The final design consists of a white background, solid blue rectangle and yellow Pac-Man character programmed to move clockwise around the rectangle.
+
+<!-- Insert final demonstration photograph -->
+
+## Problems Encountered
+
+During the development of the project, I encountered several problems.
+
+Initially, Pac-Man was facing the wrong direction. This was addressed by using signed coordinate calculations and a case statement to rotate the image.
+
+Another problem was positioning the blue rectangle on the monitor. I adjusted the row and column coordinates until the rectangle appeared in the desired position.
+
+I also had to correct the RGB colour values because each colour channel only supports four bits. The maximum value is 15 rather than 255.
+
+The movement speed was adjusted by changing the SPEED parameter in the PacManImage module.
+
+## Conclusion
+
+This project helped me develop my understanding of Verilog, FPGA programming and VGA displays.
+
+I learned how to generate shapes using pixel coordinates, use counters to control animation and use case statements to control movement and direction.
+
+I also gained experience using Vivado to examine RTL schematics and implement a VGA design on the Basys 3 FPGA.
+
+The final design demonstrates how a basic VGA colour template can be modified to generate an animated Pac-Man character using digital logic.
